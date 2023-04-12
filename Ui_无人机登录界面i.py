@@ -154,7 +154,8 @@ class Ui_MainWindow_1(object):
         self.frame_6.setStyleSheet("QPushButton{\n"
 "        border:none;\n"
 "        border-radius:5px;\n"
-"        background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(88, 213, 175, 255), stop:1 rgba(255, 255, 255, 255));\n"
+"        \n"
+"    background-color: rgb(156, 216, 191);\n"
 "}\n"
 "\n"
 "QPushButton:hover{\n"
@@ -177,10 +178,16 @@ class Ui_MainWindow_1(object):
         self.frame_6.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_6.setObjectName("frame_6")
         self.label = QtWidgets.QLabel(self.frame_6)
-        self.label.setGeometry(QtCore.QRect(30, 10, 240, 100))
+        self.label.setGeometry(QtCore.QRect(0, 10, 270, 100))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        self.label.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
-        font.setPointSize(25)
+        font.setPointSize(21)
         self.label.setFont(font)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
         self.lineEdit = QtWidgets.QLineEdit(self.frame_6)
         self.lineEdit.setGeometry(QtCore.QRect(100, 150, 110, 25))
@@ -203,7 +210,7 @@ class Ui_MainWindow_1(object):
         font = QtGui.QFont()
         font.setPointSize(15)
         self.pushButton_5.setFont(font)
-        self.pushButton_5.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(88, 213, 175, 255), stop:1 rgba(255, 255, 255, 255));")
+        self.pushButton_5.setStyleSheet("")
         self.pushButton_5.setObjectName("pushButton_5")
         self.label_3 = QtWidgets.QLabel(self.frame_6)
         self.label_3.setGeometry(QtCore.QRect(70, 150, 21, 21))
@@ -243,7 +250,7 @@ class Ui_MainWindow_1(object):
         self.frame_10.setStyleSheet("QPushButton{\n"
 "        border:none;\n"
 "        border-radius:5px;\n"
-"        background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(88, 213, 175, 255), stop:1 rgba(255, 255, 255, 255));\n"
+"        background-color: rgb(156, 216, 191);\n"
 "}\n"
 "\n"
 "QPushButton:hover{\n"
@@ -266,14 +273,14 @@ class Ui_MainWindow_1(object):
         self.frame_10.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_10.setObjectName("frame_10")
         self.label_2 = QtWidgets.QLabel(self.frame_10)
-        self.label_2.setGeometry(QtCore.QRect(-1, 10, 271, 101))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.label_2.setGeometry(QtCore.QRect(0, 10, 270, 100))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
         self.label_2.setSizePolicy(sizePolicy)
         font = QtGui.QFont()
-        font.setPointSize(25)
+        font.setPointSize(21)
         self.label_2.setFont(font)
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_2.setObjectName("label_2")
@@ -345,10 +352,11 @@ class Ui_MainWindow_1(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(1)
         self.pushButton_3.clicked.connect(MainWindow.showMinimized)
         self.pushButton_4.clicked.connect(MainWindow.close)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.stackedWidget.setCurrentIndex(0)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

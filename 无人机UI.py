@@ -12,7 +12,7 @@ from multiprocessing import Process,Manager
 #sh文件改进，判断哪些pyton文件结束并修改json文件内容
 #在登录后，根据不同的登录角色更新json内容，value为0表示leader,1表示簇头，2表示普通无人机
 #InterfaceWindow中的choose_name一定是无人机原本的名字，并不是按钮名称，在左侧按钮点击响应函数中已经将按钮名称转换为无人机名称
-
+#debug 记录，将1035行ele改为self.job_2_name(ele_inner),4.10-12:42
 
 path_json_online='temporary_save'
 path_json_communicate='communication'
@@ -146,7 +146,7 @@ class InterfaceWindow(QMainWindow):
         self.weight_inner_tmp=None
         self.communicate_log={}
         self.verify_leader_display=False
-
+        self.sub_label=False#表明右方列表名称为消息显示列表，True表示为认证信息显示列表
         # self.ui.frame_2.setVisible(False)
         
         # if state==0:
@@ -558,6 +558,7 @@ class InterfaceWindow(QMainWindow):
         self.ui.pushButton_5.clicked.connect(lambda:self.refresh_textbrowser_down())
         self.ui.pushButton_6.clicked.connect(lambda:self.refresh_button_left())
         self.ui.pushButton_7.clicked.connect(lambda:self.refresh_label_top())
+        self.ui.pushButton_skip.clicked.connect(lambda:self.refresh_label_sub_top())#将右方消息显示列表改为认证信息显示列表
 #------------------------------------------------------------------------------------
         # self.ui.verticalLayout_3.setDirection(self.ui.verticalLayout_3.BottomToTop)
         self.setWindowFlag(Qt.FramelessWindowHint)
@@ -589,6 +590,9 @@ class InterfaceWindow(QMainWindow):
                 第二次握手接收消息： ['IDas', 'IDLead', '2023-04-05 04:39:36.639948', '5343', '5cee09dacdc8ce410d25a1e3dc245aa95bddd557613eafbe6a61ab2453e367a2']\n \
                 第三次握手发送消息： ['IDLead', 'IDas', '2023-04-05 04:39:36.645947', '4393', '8c16f263d05bf8f73f6edf93be2762f4a9d746cec00bbd648106e24e5c325c88']\n \
                 协商秘钥为： {'IDas': ['6dee631614a49a0816ca8f0d84e7c69e', '41b8febbd806998538f8cbe07e46b6b8']}\n" 
+            dic_verify[self.name]=dic_verify.setdefault(self.name,{})
+            dic_verify_inner=dic_verify[self.name]
+            # dic_verify_inner[self.comu_name]#等待修改，后续会改成线程所以暂时的修改是无用功
             dic_verify[self.verify_leader_display]={"簇头无人机":message_opponent}
         else:
             return#
@@ -601,7 +605,7 @@ class InterfaceWindow(QMainWindow):
     def refresh_label_top(self):
         dic=get_dic_from_json(path_json_online)
         self.state=dic[self.name]#更新自身状态
-
+        print("refresh_label_top",self.state)
         txt=self.value_2_job(self.name)
         self.ui.label.setText(txt)
         if self.state==1:#为簇头，将消息池设为可见
@@ -1032,35 +1036,71 @@ class InterfaceWindow(QMainWindow):
                             ele.setVisible(True)#将选择簇头设置为可见
                             self.controller_verify_lst[i].setVisible(False)
                             ele_inner.setText(self.job_2_name(ele_inner.text()))
-                            self.dic[ele.text()]=2#讲身份还原为Ordinary UAV
+                            self.dic[self.job_2_name(ele_inner.text())]=2#将身份还原为Ordinary UAV
                     self.dic[self.comu_name]=1#延迟修改，避免影响else中self.job_2_name的判断
                     save_dic_to_json(path_json_online,self.dic)
                     print("multi_func_dic:",self.dic)  
  
 
-                    
-                
+    def refresh_label_sub_top(self):
+        if self.sub_label==False:
+            self.ui.label_2.setText("认证消息列表")
+                # dic_verify_communication=None
+            with open("verify_dis",'r') as file:
+                dic_verify_communication=json.load(file)
+                self.verify_leader_display=list(dic_verify_communication.keys())[0]
+            print("self.verify_leader_display:",self.verify_leader_display)
+            if self.verify_leader_display=="true":
+                print("self.verify_communcation:",dic_verify_communication[self.verify_leader_display])
+                print("self.value_2_job:",self.value_2_job(self.name))
+                txt=dic_verify_communication[self.verify_leader_display].setdefault(self.value_2_job(self.name),None)
+                print("txt:",txt)
+                if txt is not None:
+                    self.ui.textBrowser_2.setPlainText(txt)
+                self.verify_leader_display=False
+            self.communicate_log=get_dic_from_json(path_json_communicate)
+            print("communicate_log",self.communicate_log)
+            # dic=get_dic_from_json(path_json_online)
+            # self.dic=dic#顺便更新一下self.dic在线列表
+            # print("inhere!")
+            print(self.communicate_log)  
+            self.sub_label=True#下次skip时变为消息显示列表   
+        else:
+            self.ui.label_2.setText("消息显示列表")
+            self.refresh_textbrowser_middle()
+            self.sub_label=False        
+                                                                            #与show_2不同点：1.只能刷新中间聊天窗口
+                                                                                          #2.ID,ID_2,message按照格式添加入communication文件
+    def show_1(self,obj:QtWidgets.QTextBrowser,ID:str,ID_2:str,message:str):#刷新中间聊天窗口内容，向其中添加ID->ID_2的一条message聊天内容
+        dic=get_dic_from_json(path_json_communicate)
+        # if name_bt.find("簇头")!=-1:
+        #     name_bt=name_bt.strip("簇头")
+        dic[ID]=dic.setdefault(ID,{})
+        dic_inner=dic[ID]
+        # print("in communicate(): self.comu_name=",self.comu_name)
+        dic_inner[ID_2]=dic_inner.setdefault(ID_2,[])
+        lst_comu_log=dic_inner[ID_2]
+        st=str()
+        for ele in lst_comu_log:
+            st+=ele+"\n"
+        # lst_comu_log.append(self.textedit_lst[idx].toPlainText())
+        lst_comu_log.append(message)
+        self.communicate_log=dic
+        st+=message
+        obj.setPlainText(st)
+        # self.textbrowser_lst[idx].setPlainText(st)
+        # self.textbrowser_lst[0].setPlainText("test_1")
+        # self.textbrowser_lst[1].setPlainText("test_2")
+        
+        save_dic_to_json(path_json_communicate,dic)
+        # self.ui.textBrowser_2.setPlainText()
+
+    def show_2(self,obj:QtWidgets.QTextBrowser,message:str):#任何一个聊天窗口清空后显示message内容
+        obj.setPlainText(message)
+        
 
     def refresh_textbrowser_middle(self):#窗口右侧的总通信记录
-        dic_verify_communication=None
-        with open("verify_dis",'r') as file:
-            dic_verify_communication=json.load(file)
-            self.verify_leader_display=list(dic_verify_communication.keys())[0]
-        print("self.verify_leader_display:",self.verify_leader_display)
-        if self.verify_leader_display=="true":
-            print("self.verify_communcation:",dic_verify_communication[self.verify_leader_display])
-            print("self.value_2_job:",self.value_2_job(self.name))
-            txt=dic_verify_communication[self.verify_leader_display].setdefault(self.value_2_job(self.name),None)
-            print("txt:",txt)
-            if txt is not None:
-                self.ui.textBrowser_2.setPlainText(txt)
-            self.verify_leader_display=False
-        self.communicate_log=get_dic_from_json(path_json_communicate)
-        print("communicate_log",self.communicate_log)
-        # dic=get_dic_from_json(path_json_online)
-        # self.dic=dic#顺便更新一下self.dic在线列表
-        # print("inhere!")
-        print(self.communicate_log)
+        
         st=str()
         for ele in self.communicate_log.keys():#ele为发送者设备名称
             dic_lst=self.communicate_log[ele]
@@ -1100,32 +1140,11 @@ class InterfaceWindow(QMainWindow):
             if ele.isChecked():
                 # self.comu_name=ele.text()
                 idx=i
-
+        self.show_1(self.textbrowser_lst[idx],self.name,self.comu_name,self.textedit_lst[idx].toPlainText())
+        self.textedit_lst[idx].setPlainText("")
+        # print('idx=',idx)
+        # st=str()
         
-        print('idx=',idx)
-        st=str()
-        dic=get_dic_from_json(path_json_communicate)
-        # if name_bt.find("簇头")!=-1:
-        #     name_bt=name_bt.strip("簇头")
-        dic[self.name]=dic.setdefault(self.name,{})
-        dic_inner=dic[self.name]
-        print("in communicate(): self.comu_name=",self.comu_name)
-        dic_inner[self.comu_name]=dic_inner.setdefault(self.comu_name,[])
-        lst_comu_log=dic_inner[self.comu_name]
-        for ele in lst_comu_log:
-            st+=ele
-        lst_comu_log.append(self.textedit_lst[idx].toPlainText())
-        self.communicate_log=dic
-        st+=self.textedit_lst[idx].toPlainText()
-        self.textedit_lst[idx].setText("")
-        # print("st=",st)
-        # print(self.textedit_lst[idx].toPlainText())
-        # lst_comu_log.append(textbrowser.text())
-        self.textbrowser_lst[idx].setPlainText(st)
-        # self.textbrowser_lst[0].setPlainText("test_1")
-        # self.textbrowser_lst[1].setPlainText("test_2")
-        
-        save_dic_to_json(path_json_communicate,dic)
 
     def choose_comu_obj(self):
         print('in choose_comu_obj_function!')
